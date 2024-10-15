@@ -24,14 +24,26 @@ public class AiDocService {
     private final EmbeddingModel embeddingModel;
     private final ContentRetriever contentRetriever;
     private final ChatLanguageModel chatLanguageModel;
+    private final EmbeddingStore<TextSegment> embeddingStore;
+    private final EmbeddingStoreIngestor ingestor;
 
 
     public AiDocService(EmbeddingModel embeddingModel,
                         ContentRetriever contentRetriever,
-                        ChatLanguageModel chatLanguageModel) {
+                        ChatLanguageModel chatLanguageModel, EmbeddingStore<TextSegment> embeddingStore) {
         this.embeddingModel = embeddingModel;
         this.contentRetriever = contentRetriever;
         this.chatLanguageModel = chatLanguageModel;
+        this.embeddingStore = embeddingStore;
+        this.ingestor = EmbeddingStoreIngestor.builder()
+            .documentSplitter(DocumentSplitters.recursive(500, 0))
+            .embeddingModel(embeddingModel)
+            .embeddingStore(embeddingStore)
+            .build();
+    }
+
+    public void ingest(Document document) {
+        ingestor.ingest(document);
     }
 
     public String chat(String filePath, String question) {
