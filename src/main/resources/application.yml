@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: DocAgent
+file:
+  upload-dir: /Users/arkadiuszrogacki/IdeaProjects/doc-agent/uploads/
+langchain4j:
+  open-ai:
+    chat-model:
+      api-key: ${OPENAI_API_KEY}
+      model-name: gpt-4o

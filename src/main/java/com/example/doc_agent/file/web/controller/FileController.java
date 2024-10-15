@@ -4,7 +4,6 @@ import com.example.doc_agent.file.dto.UploadResult;
 import com.example.doc_agent.file.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +33,7 @@ public class FileController {
     )
     public ResponseEntity<UploadResult> uploadFile(@RequestParam("file") MultipartFile file,
                                                    HttpServletRequest request) {
-        UUID uuid = fileService.upload(file);
+        UUID uuid = fileService.save(file);
         return ResponseEntity.status(HttpStatus.CREATED)
             .location(buildLocationUri(request, uuid))
             .body(new UploadResult(uuid.toString()));
@@ -51,10 +50,11 @@ public class FileController {
 
     @GetMapping(value = "/file/{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<Resource> getFile(@PathVariable UUID id) {
-        Resource resource = fileService.getFile(id);
-        return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-            .body(resource);
+        String filenName = fileService.getFilePath(id);
+        return ResponseEntity.ok().build();
+//        return ResponseEntity.ok()
+//            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filenName + "\"")
+//            .body(resource);
     }
 }
