@@ -1,9 +1,11 @@
 package com.example.doc_agent.file.web.controller;
 
+import com.example.doc_agent.file.dto.UploadFileStatus;
 import com.example.doc_agent.file.dto.UploadResult;
 import com.example.doc_agent.file.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,28 +35,29 @@ public class FileController {
     )
     public ResponseEntity<UploadResult> uploadFile(@RequestParam("file") MultipartFile file,
                                                    HttpServletRequest request) {
-        UUID uuid = fileService.save(file);
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .location(buildLocationUri(request, uuid))
-            .body(new UploadResult(uuid.toString()));
+        UploadResult result = fileService.save(file);
+        HttpStatus status = result.status() == UploadFileStatus.SUCCESS ?
+            HttpStatus.CREATED : HttpStatus.INTERNAL_SERVER_ERROR;
+        return ResponseEntity.status(status)
+            .location(buildLocationUri(request, result.id()))
+            .body(result);
     }
 
     private URI buildLocationUri(HttpServletRequest request,
-                                 UUID uuid) {
+                                 String id) {
         return ServletUriComponentsBuilder
             .fromRequestUri(request)
-            .replacePath("/file/" + uuid.toString())
+            .replacePath("/file/" + id)
             .build()
             .toUri();
     }
 
     @GetMapping(value = "/file/{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<Resource> getFile(@PathVariable UUID id) {
-        String filenName = fileService.getFilePath(id);
-        return ResponseEntity.ok().build();
-//        return ResponseEntity.ok()
-//            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-//            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filenName + "\"")
-//            .body(resource);
+        Resource resource = fileService.getFile(id);
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+            .body(resource);
     }
 }
