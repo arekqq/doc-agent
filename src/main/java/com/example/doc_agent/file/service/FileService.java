@@ -1,12 +1,15 @@
 package com.example.doc_agent.file.service;
 
 import com.example.doc_agent.file.persistence.FileRepository;
+import com.example.doc_agent.file.service.util.ResourceReader;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.util.UUID;
 
 @Service
@@ -18,17 +21,28 @@ public class FileService {
         this.fileRepository = fileRepository;
     }
 
-    public UUID upload(MultipartFile file) throws IOException { // TODO handle all exceptions gracefully (dedicated exception and advisor with http code
-        ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
-            @Override
-            public String getFilename() {
-                return file.getOriginalFilename();
-            }
-        }; // TODO move to some reader utility
+    public UUID upload(MultipartFile file) {
+        validate(file);
+        ByteArrayResource resource = ResourceReader.read(file);
         return fileRepository.add(resource);
     }
 
+    private void validate(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No file provided");
+        }
+
+        String fileExtension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        if (!"txt".equalsIgnoreCase(fileExtension) && !"pdf".equalsIgnoreCase(fileExtension)) {
+            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Only .txt or .pdf files are allowed");
+        }
+    }
+
     public Resource getFile(UUID id) {
-        return fileRepository.get(id);
+        Resource resource = fileRepository.get(id);
+        if (resource == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found");
+        }
+        return resource;
     }
 }
