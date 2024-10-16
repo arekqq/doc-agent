@@ -5,6 +5,7 @@ import com.example.doc_agent.file.dto.UploadFileStatus;
 import com.example.doc_agent.file.dto.UploadResult;
 import com.example.doc_agent.file.exception.FileNotFoundException;
 import com.example.doc_agent.file.persistence.FileRepository;
+import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +77,7 @@ class FileServiceTest {
         UUID mockId = UUID.randomUUID();
         when(fileRepository.add(anyString())).thenReturn(mockId);
         when(fileRepository.getFileName(any())).thenReturn(fileName);
-        when(FileSystemDocumentLoader.loadDocument(anyString(), any())).thenReturn(null);
+        when(FileSystemDocumentLoader.loadDocument(anyString(), any())).thenReturn(new Document("text"));
 
         // When
         UploadResult result = fileService.save(mockFile);
@@ -96,7 +97,6 @@ class FileServiceTest {
         String fileName = "testfile.txt";
         MockMultipartFile mockFile = new MockMultipartFile(
             "file", fileName, "text/plain", "Test content".getBytes());
-        when(fileRepository.getFileName(any())).thenReturn(fileName);
         MockMultipartFile spyFile = spy(mockFile);
         doThrow(IOException.class).when(spyFile).transferTo(any(File.class));
 

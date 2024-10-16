@@ -46,7 +46,7 @@ class FileValidatorTest {
             "Expected validate(unsupportedFile) to throw, but it didn't"
         );
 
-        assertEquals("Currently only [pdf, txt] files are supported", exception.getReason());
+        assertEquals("Currently only [txt, pdf] files are supported", exception.getReason());
     }
 
     @Test

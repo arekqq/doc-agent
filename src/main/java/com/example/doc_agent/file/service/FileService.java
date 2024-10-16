@@ -3,10 +3,12 @@ package com.example.doc_agent.file.service;
 import com.example.doc_agent.ai.service.AiDocService;
 import com.example.doc_agent.file.dto.UploadFileStatus;
 import com.example.doc_agent.file.dto.UploadResult;
+import com.example.doc_agent.file.enums.FileExtension;
 import com.example.doc_agent.file.exception.FileNotFoundException;
 import com.example.doc_agent.file.persistence.FileRepository;
 import com.example.doc_agent.file.util.FileValidator;
-import dev.langchain4j.data.document.parser.TextDocumentParser;
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.DocumentParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,12 +56,20 @@ public class FileService {
             logger.info("File uploaded successfully: {}", file.getOriginalFilename());
             id = fileRepository.add(file.getOriginalFilename());
             status = UploadFileStatus.SUCCESS;
+            ingest(id);
         } catch (IOException e) {
             status = UploadFileStatus.FAILURE;
             logger.info("File upload failed: {}", file.getOriginalFilename());
         }
-        aiDocService.ingest(loadDocument(getFilePath(id), new TextDocumentParser()));
         return new UploadResult(status, Objects.toString(id));
+    }
+
+    private void ingest(UUID id) {
+        String filePath = getFilePath(id);
+        DocumentParser documentParser = FileExtension.fromFileName(filePath).getParser();
+        Document document = loadDocument(filePath, documentParser);
+        document.metadata().put("id", id);
+        aiDocService.ingest(document);
     }
 
     public String getFilePath(UUID id) {
@@ -77,7 +87,7 @@ public class FileService {
     }
 
     public void checkUploadedAlready(UUID uuid) {
-        if(!fileRepository.exists(uuid)) {
+        if (!fileRepository.exists(uuid)) {
             throw new FileNotFoundException();
         }
     }
