@@ -20,4 +20,8 @@ public class FileRepository {
     public String getFileName(UUID uuid) {
         return repository.get(uuid);
     }
+
+    public boolean exists(UUID uuid) {
+        return repository.containsKey(uuid);
+    }
 }

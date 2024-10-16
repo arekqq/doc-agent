@@ -3,7 +3,9 @@ package com.example.doc_agent.file.service;
 import com.example.doc_agent.ai.service.AiDocService;
 import com.example.doc_agent.file.dto.UploadFileStatus;
 import com.example.doc_agent.file.dto.UploadResult;
+import com.example.doc_agent.file.exception.FileNotFoundException;
 import com.example.doc_agent.file.persistence.FileRepository;
+import com.example.doc_agent.file.util.FileValidator;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +14,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -40,22 +41,8 @@ public class FileService {
         this.aiDocService = aiDocService;
     }
 
-    private void validate(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No file provided");
-        }
-
-        String fileExtension = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        if (!"txt".equalsIgnoreCase(fileExtension) && !"pdf".equalsIgnoreCase(fileExtension)) { // TODO create collection of supported file extensions
-            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Only .txt or .pdf files are allowed");
-        }
-    }
-
     public UploadResult save(MultipartFile file) {
-
-
-        validate(file);
-
+        FileValidator.validate(file);
         File directory = new File(uploadDir);
         if (!directory.exists()) {
             directory.mkdirs();
@@ -63,7 +50,7 @@ public class FileService {
         UUID id = null;
         UploadFileStatus status;
         try {
-            file.transferTo(new File(directory + "/" +  file.getOriginalFilename())); // TODO remove that slash
+            file.transferTo(new File(directory, file.getOriginalFilename()));
             logger.info("File uploaded successfully: {}", file.getOriginalFilename());
             id = fileRepository.add(file.getOriginalFilename());
             status = UploadFileStatus.SUCCESS;
@@ -87,5 +74,11 @@ public class FileService {
         String fileName = fileRepository.getFileName(uuid);
         Path filePath = Paths.get(uploadDir).resolve(fileName).normalize();
         return new FileSystemResource(filePath);
+    }
+
+    public void checkUploadedAlready(UUID uuid) {
+        if(!fileRepository.exists(uuid)) {
+            throw new FileNotFoundException();
+        }
     }
 }

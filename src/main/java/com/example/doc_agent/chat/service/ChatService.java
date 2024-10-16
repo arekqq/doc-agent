@@ -17,7 +17,7 @@ public class ChatService {
     }
 
     public String getAnswer(ChatRequest request) {
-        String filePath = fileService.getFilePath(request.documentId());
-        return aiDocService.chat(filePath, request.question());
+        fileService.checkUploadedAlready(request.documentId());
+        return aiDocService.chat(request.question());
     }
 }
