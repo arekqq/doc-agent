@@ -4,7 +4,7 @@ This is a Maven-based Java project that provides a REST API for file uploads and
 
 ## Prerequisites
 - **Java 17** or higher
-- **Maven 3.6** or higher
+- **Maven 3.9.9** or higher
 - An **OpenAI API key**
 
 ## 0. Running the Project

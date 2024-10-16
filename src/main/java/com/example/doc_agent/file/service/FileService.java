@@ -33,7 +33,7 @@ public class FileService {
     private final AiDocService aiDocService;
     private final Logger logger = LoggerFactory.getLogger(FileService.class);
 
-    @Value("${file.upload-dir}")
+    @Value("${file.upload-dir:/app/uploads}")
     private String uploadDir;
 
     public FileService(FileRepository fileRepository, AiDocService aiDocService) {

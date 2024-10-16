@@ -1,0 +1,11 @@
+services:
+  java-app:
+    image: doc-agent:latest
+    container_name: java-app-container
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - FILE_UPLOAD_DIR=/app/uploads
+      - OPENAI_API_KEY=${OPENAI_API_KEY}

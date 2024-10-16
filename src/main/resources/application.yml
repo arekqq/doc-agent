@@ -6,7 +6,7 @@ file:
 langchain4j:
   open-ai:
     chat-model:
-      api-key: ${OPENAI_API_KEY}
+      api-key: ${OPENAI_API_KEY:0}
       model-name: gpt-4o
       log-requests: true
       log-responses: true
