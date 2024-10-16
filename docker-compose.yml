@@ -1,7 +1,9 @@
 services:
   java-app:
-    image: doc-agent:latest
-    container_name: java-app-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: doc-agent
     ports:
       - "8080:8080"
     volumes:

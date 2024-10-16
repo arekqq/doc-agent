@@ -60,7 +60,7 @@ cd your-repository
 Once the `OPENAI_API_KEY` is set, you can start the application using Docker Compose:
 
 ```
-docker-compose up --build
+docker-compose up
 ```
 
 This command will build and run the Docker containers defined in the `docker-compose.yml` file.
