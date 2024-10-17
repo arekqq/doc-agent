@@ -9,17 +9,20 @@ import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
-import dev.langchain4j.rag.query.Query;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
+import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
-import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
+import dev.langchain4j.store.embedding.filter.Filter;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
+import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 import static java.util.stream.Collectors.joining;
 
 @Service
@@ -29,14 +32,15 @@ public class AiDocService {
     private final EmbeddingModel embeddingModel;
     private final EmbeddingStore<TextSegment> embeddingStore;
     private final ChatLanguageModel chatLanguageModel;
-    private final AiService aiService;
 
-    public AiDocService(EmbeddingStoreIngestor ingestor, EmbeddingModel embeddingModel, EmbeddingStore<TextSegment> embeddingStore, ChatLanguageModel chatLanguageModel, AiService aiService) {
+    public AiDocService(EmbeddingStoreIngestor ingestor,
+                        EmbeddingModel embeddingModel,
+                        EmbeddingStore<TextSegment> embeddingStore,
+                        ChatLanguageModel chatLanguageModel) {
         this.ingestor = ingestor;
         this.embeddingModel = embeddingModel;
         this.embeddingStore = embeddingStore;
         this.chatLanguageModel = chatLanguageModel;
-        this.aiService = aiService;
     }
 
     public void ingest(Document document) {
@@ -44,10 +48,17 @@ public class AiDocService {
     }
 
     public String chat(ChatRequest request) {
-        Query query = new Query(request.question());
-        // TODO filter by documentId
-
-        return aiService.answer(query);
+        Filter idFilter = metadataKey("id").isEqualTo(request.documentId());
+        ContentRetriever contentRetriever = EmbeddingStoreContentRetriever.builder()
+            .embeddingStore(embeddingStore)
+            .embeddingModel(embeddingModel)
+            .filter(idFilter)
+            .build();
+        Assistant assistant = AiServices.builder(Assistant.class)
+            .chatLanguageModel(chatLanguageModel)
+            .contentRetriever(contentRetriever)
+            .build();
+        return assistant.answer(request.question());
     }
 
     public String chatLowLevel(ChatRequest request) {
@@ -59,7 +70,7 @@ public class AiDocService {
             .queryEmbedding(questionEmbedding)
             .maxResults(maxResults)
             .minScore(minScore)
-            .filter(new IsEqualTo("id", request.documentId()))
+            .filter(metadataKey("id").isEqualTo(request.documentId()))
             .build()).matches();
         PromptTemplate promptTemplate = PromptTemplate.from(
             """
@@ -68,6 +79,8 @@ public class AiDocService {
                 {{question}}
                 Base your answer on the following information:
                 {{information}}
+                If information doesn't cover the question - answer literally:
+                ====== not enough information ======
                 """);
         String information = search.stream()
             .map(match -> match.embedded().text())
