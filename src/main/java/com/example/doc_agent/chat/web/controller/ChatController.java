@@ -3,6 +3,7 @@ package com.example.doc_agent.chat.web.controller;
 import com.example.doc_agent.chat.dto.ChatRequest;
 import com.example.doc_agent.chat.dto.ChatResponse;
 import com.example.doc_agent.chat.service.ChatService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +21,7 @@ public class ChatController {
     }
 
     @PostMapping
-    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
+    public ResponseEntity<ChatResponse> chat(@RequestBody @Valid ChatRequest request) {
         String answer = chatService.getAnswer(request);
         return ResponseEntity.ok()
             .body(new ChatResponse(answer));

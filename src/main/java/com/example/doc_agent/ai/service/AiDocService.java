@@ -62,7 +62,6 @@ public class AiDocService {
     }
 
     public String chatLowLevel(ChatRequest request) {
-
         Embedding questionEmbedding = embeddingModel.embed(request.question()).content();
         int maxResults = 3;
         double minScore = 0.7;
