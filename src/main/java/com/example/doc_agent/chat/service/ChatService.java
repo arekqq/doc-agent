@@ -18,6 +18,6 @@ public class ChatService {
 
     public String getAnswer(ChatRequest request) {
         fileService.checkUploadedAlready(request.documentId());
-        return aiDocService.chat(request.question());
+        return aiDocService.chatLowLevel(request);
     }
 }

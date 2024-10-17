@@ -67,7 +67,7 @@ This command will build and run the Docker containers defined in the `docker-com
 
 #### 3. Access the Application
 
-Once the containers are running, you can access the application via the provided URL (e.g., `http://localhost:8000`).
+Once the containers are running, you can access the application via the provided URL (e.g., `http://localhost:8080`).
 
 #### 4. Stopping the Application
 

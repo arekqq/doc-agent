@@ -16,3 +16,6 @@ logging:
       langchain4j: DEBUG
       ai4j:
         openai4j: DEBUG
+server:
+  error:
+    include-message: always
