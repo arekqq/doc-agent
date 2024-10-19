@@ -1,6 +1,10 @@
 spring:
   application:
     name: DocAgent
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
 file:
   upload-dir: /Users/arkadiuszrogacki/IdeaProjects/doc-agent/uploads/
 langchain4j:
