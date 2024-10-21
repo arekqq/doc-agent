@@ -1,0 +1,82 @@
+{
+	"info": {
+		"_postman_id": "9aaddb59-9b71-424f-9540-612cd9d44b0f",
+		"name": "Doc Agent",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5876741",
+		"_collection_link": "https://lunar-crater-581162.postman.co/workspace/test~b987f396-2b24-460b-a976-f57d34ee5114/collection/5876741-9aaddb59-9b71-424f-9540-612cd9d44b0f?action=share&source=collection_link&creator=5876741"
+	},
+	"item": [
+		{
+			"name": "upload",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the JSON response",
+							"var jsonData = pm.response.json();",
+							"",
+							"// Assuming the id is part of the response, save it to an environment variable",
+							"pm.environment.set(\"dataId\", jsonData.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Users/arkadiuszrogacki/Downloads/S00E02 — Prompt Engineering _ BRAVE Courses.pdf"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:8080/upload",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "chat",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"documentId\": \"{{dataId}}\",\n    \"question\": \"Co to jest Ensembling? Odpowiedz krótko\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/chat",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"chat"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
