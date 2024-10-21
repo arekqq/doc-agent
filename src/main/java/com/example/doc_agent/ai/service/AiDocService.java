@@ -28,6 +28,9 @@ import static java.util.stream.Collectors.joining;
 @Service
 public class AiDocService {
 
+    private static final double MIN_SCORE = 0.6;
+    private static final int MAX_RESULTS = 3;
+
     private final EmbeddingStoreIngestor ingestor;
     private final EmbeddingModel embeddingModel;
     private final EmbeddingStore<TextSegment> embeddingStore;
@@ -53,6 +56,8 @@ public class AiDocService {
             .embeddingStore(embeddingStore)
             .embeddingModel(embeddingModel)
             .filter(idFilter)
+            .minScore(MIN_SCORE)
+            .maxResults(MAX_RESULTS)
             .build();
         Assistant assistant = AiServices.builder(Assistant.class)
             .chatLanguageModel(chatLanguageModel)
@@ -63,12 +68,10 @@ public class AiDocService {
 
     public String chatLowLevel(ChatRequest request) {
         Embedding questionEmbedding = embeddingModel.embed(request.question()).content();
-        int maxResults = 3;
-        double minScore = 0.7;
         List<EmbeddingMatch<TextSegment>> search = embeddingStore.search(EmbeddingSearchRequest.builder()
             .queryEmbedding(questionEmbedding)
-            .maxResults(maxResults)
-            .minScore(minScore)
+            .minScore(MIN_SCORE)
+            .maxResults(MAX_RESULTS)
             .filter(metadataKey("id").isEqualTo(request.documentId()))
             .build()).matches();
         PromptTemplate promptTemplate = PromptTemplate.from(
